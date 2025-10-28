@@ -1,0 +1,7 @@
+#include "Theme.h"
+
+namespace Theme {
+  uint16_t colors[10] = {0xFF00,0xF4B2,0xAEDB,0xFD20,0x5B8F,0xE2AC,0x3C92,0xB5B5,0xD6BA,0x8A4F};
+  int      themeIndex = 0;
+  uint16_t BG         = TFT_BLACK;
+}
