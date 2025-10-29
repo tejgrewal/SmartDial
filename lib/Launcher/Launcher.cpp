@@ -21,6 +21,7 @@ static App APPS[] = {
   {"Chrome",       chromeIcon,     chromeIcon_W,     chromeIcon_H,     chromeIcon_COLORKEY,     "chrome"},
   {"VS Code",      vsCodeIcon,     vsCodeIcon_W,     vsCodeIcon_H,     vsCodeIcon_COLORKEY,     "code"},
   {"Arduino IDE",  arduinoIcon,    arduinoIcon_W,    arduinoIcon_H,    arduinoIcon_COLORKEY,    "arduino"},
+  {"Back",         backIcon,       backIcon_W,       backIcon_H,       backIcon_COLORKEY,       ""},
 };
 static const int APP_COUNT = sizeof(APPS)/sizeof(APPS[0]);
 
@@ -73,6 +74,13 @@ static inline void drawSingleCard(TFT_eSprite &spr) {
 }
 
 static inline void sendRunCommand() {
+  if (APPS[s_sel].run == nullptr || APPS[s_sel].run[0] == '\0') {
+    // "Back" selected -> request exit
+    s_exitFlag = true;
+    Haptics::back();
+    Serial.println("[Launcher] Back -> exit");
+    return;
+  }
   if (!BLEHost::ready()) {
     Serial.println("[Launcher] BLE not connected");
     Haptics::back();
@@ -111,7 +119,10 @@ void Launcher::tickAndDraw(TFT_eSprite &spr, ModulinoKnob &knob) {
   const bool nowPressed = knob.isPressed();
   if (!s_wasPressed && nowPressed) s_pressStart = millis();
   if (s_wasPressed && !nowPressed) {
-    if (millis() - s_pressStart < EXIT_HOLD_MS) sendRunCommand();
+    if (millis() - s_pressStart < EXIT_HOLD_MS) {
+      // Short press: either run the selected app or handle "Back"
+      sendRunCommand();
+    }
   }
   if (nowPressed && (millis() - s_pressStart >= EXIT_HOLD_MS) && !s_exitFlag) {
     s_exitFlag = true;
