@@ -110,6 +110,10 @@ if (knob.isPressed()) {
 
   } else if (appState == AppState::STATE_HISCORES) {
     Highscores::onPress(goMenu);
+  
+  } else if (appState == AppState::STATE_ABOUT) {
+    // deliver press to About page (will call goMenu() or set its exit flag)
+    About::onPress(goMenu);
 
   } else if (appState == AppState::STATE_LIGHTS) {
     // IMPORTANT: do nothing here — Lights handles press internally.

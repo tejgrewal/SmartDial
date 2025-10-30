@@ -1,18 +1,55 @@
-#include "About.h"
+#include "Highscores.h"
 #include "AppConfig.h"
+#include "Storage.h"
+#include "Widgets.h"
+#include "Haptics.h"
 #include "Icons.h"
 #include "Blit.h"
-void About::init(TFT_eSprite &, ModulinoKnob &){}
+#include "Theme.h"
+#include "About.h"
+#include "Menu.h"
+
+
+void About::init(TFT_eSprite &, ModulinoKnob &){
+  // nothing to initialize
+}
+
+// --- Add missing draw() implementation required by main.cpp ---
 void About::draw(TFT_eSprite &spr){
-spr.fillSprite(TFT_BLACK);
-drawIconTransparent(spr, CX-60, 54-60, infoIcon, infoIcon_W, infoIcon_H, infoIcon_COLORKEY);
-spr.setTextDatum(MC_DATUM); spr.setTextColor(TFT_WHITE,TFT_BLACK);
-spr.drawString("Game Hub", CX, 100);
-spr.setTextColor(0xC618,TFT_BLACK);
-const int y=128, line=18;
-spr.drawString("\x95 Rotate: scroll/turn", CX, y+0*line);
-spr.drawString("\x95 Press: select/back", CX, y+1*line);
-spr.drawString("\x95 Snake: safer turning", CX, y+2*line);
-spr.drawString("\x95 Pong: hidden rim", CX, y+3*line);
-spr.pushSprite(0,0);
+  spr.fillSprite(TFT_BLACK);
+
+  spr.setTextDatum(MC_DATUM);
+  spr.setTextColor(TFT_WHITE, TFT_BLACK);
+  spr.drawString("Smart Dial", CX, 84);
+
+  spr.setTextDatum(MC_DATUM);
+  spr.setTextColor(0xC618, TFT_BLACK);
+  const int y = 108, line = 18;
+  spr.drawString("\x95 Created By", CX, y + 0*line);
+  spr.drawString("\x95 Tej Grewal", CX, y + 1*line);
+
+  spr.pushSprite(0,0);
+}
+// --- end draw() ---
+
+void About::tickAndDraw(TFT_eSprite &spr, ModulinoKnob &){
+  spr.fillSprite(TFT_BLACK);
+
+  spr.setTextDatum(MC_DATUM);
+  spr.setTextColor(TFT_WHITE, TFT_BLACK);
+  spr.drawString("Smart Dial", CX, 84);
+
+  spr.setTextDatum(MC_DATUM);
+  spr.setTextColor(0xC618, TFT_BLACK);
+  const int y = 108, line = 18;
+  spr.drawString("\x95 Created By", CX, y + 0*line);
+  spr.drawString("\x95 Tej Grewal", CX, y + 1*line);
+
+  spr.pushSprite(0,0);
+}
+
+// Pressing anywhere while About is active returns to main menu
+void About::onPress(void (*goMenu)()){
+  Haptics::back();
+  goMenu();
 }
