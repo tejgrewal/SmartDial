@@ -23,3 +23,4 @@
 #include "christmasIcon.h"
 #include "newYearIcon.h"
 #include "diwaliIcon.h"
+#include "measureIcon.h"

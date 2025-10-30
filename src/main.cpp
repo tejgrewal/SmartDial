@@ -14,12 +14,14 @@
 #include "Snake.h"
 #include "Maze.h"
 #include "Torch.h"
-#include "Launcher.h"     // <-- NEW: Launcher (BLE GATT)
+#include "Launcher.h"     // BLE GATT launcher
 #include "Highscores.h"
 #include "About.h"
 #include "BNO.h"
-#include "BLEHost.h"   
-#include "Lights.h"    // BLE UART-like server (NimBLE)
+#include "BLEHost.h"
+#include "Lights.h"       // BLE UART-like server (NimBLE)
+#include "measure.h"      // <-- NEW: center-out measurement tool
+// If your file is named "Measure.h" instead, include that name.
 
 TFT_eSPI tft;
 TFT_eSprite sprite(&tft);
@@ -37,7 +39,8 @@ static void startTorch()    { appState = AppState::STATE_TORCH; Torch::init(); }
 static void showHighscores(){ appState = AppState::STATE_HISCORES; Storage::loadHighscores(); }
 static void showAbout()     { appState = AppState::STATE_ABOUT; }
 static void startLauncher() { appState = AppState::STATE_LAUNCHER; Launcher::init(sprite, knob); }
-static void startLights(){ appState = AppState::STATE_LIGHTS; Lights::init(sprite, knob); }
+static void startLights()   { appState = AppState::STATE_LIGHTS; Lights::init(sprite, knob); }
+static void startMeasure()  { appState = AppState::STATE_MEASURE; Measure::enter(knob); } // <-- NEW
 
 void setup() {
   Serial.begin(115200);
@@ -68,66 +71,74 @@ void setup() {
   Torch::initOnce(sprite);
   Highscores::init(sprite, knob);
   About::init(sprite, knob);
+  Measure::init(sprite, knob);            // <-- NEW (once at boot)
+  // Optionally calibrate your screen width in mm:
+  // Measure::setScreenWidthMM(32.4f);
 
   lastUs = micros();
   goMenu();
 }
 
 void loop() {
-// ---- Press edge (shared) ----
-static bool pressed = false;
-if (knob.isPressed()) {
-  if (!pressed) pressed = true;
-} else if (pressed) {
-  pressed = false;
-  Haptics::press();
+  // ---- Press edge (shared) ----
+  static bool pressed = false;
+  if (knob.isPressed()) {
+    if (!pressed) pressed = true;
+  } else if (pressed) {
+    pressed = false;
+    Haptics::press();
 
-  if (appState == AppState::STATE_MENU) {
-    switch (Menu::currentId()) {
-      case MenuId::M_HOME:      break; // reserved
-      case MenuId::M_BULB:      startLights();   break;
-      case MenuId::M_LAUNCHER:  startLauncher(); break;
-      case MenuId::M_TORCH:     startTorch();    break;
-      case MenuId::M_PONG:      startPong();     break;
-      case MenuId::M_SNAKE:     startSnake();    break;
-      case MenuId::M_MAZE:      startMaze();     break;
-      case MenuId::M_HISCORES:  showHighscores();break;
-      case MenuId::M_ABOUT:     showAbout();     break;
+    if (appState == AppState::STATE_MENU) {
+      switch (Menu::currentId()) {
+        case MenuId::M_HOME:      break; // reserved
+        case MenuId::M_BULB:      startLights();   break;
+        case MenuId::M_LAUNCHER:  startLauncher(); break;
+        case MenuId::M_TORCH:     startTorch();    break;
+        case MenuId::M_MEASURE:   startMeasure();  break;   // <-- NEW
+        case MenuId::M_PONG:      startPong();     break;
+        case MenuId::M_SNAKE:     startSnake();    break;
+        case MenuId::M_MAZE:      startMaze();     break;
+        case MenuId::M_HISCORES:  showHighscores();break;
+        case MenuId::M_ABOUT:     showAbout();     break;
+      }
+
+    } else if (appState == AppState::STATE_TORCH) {
+      Haptics::back();
+      goMenu();
+
+    } else if (appState == AppState::STATE_MEASURE) {   // <-- NEW: exit Measure on press
+      Haptics::back();
+      goMenu();
+
+    } else if (appState == AppState::STATE_PONG) {
+      Pong::onPress(goMenu);
+
+    } else if (appState == AppState::STATE_SNAKE) {
+      Snake::onPress(goMenu);
+
+    } else if (appState == AppState::STATE_MAZE) {
+      Maze::onPress(goMenu);
+
+    } else if (appState == AppState::STATE_HISCORES) {
+      Highscores::onPress(goMenu);
+
+    } else if (appState == AppState::STATE_ABOUT) {
+      // deliver press to About page (will call goMenu() or set its exit flag)
+      About::onPress(goMenu);
+
+    } else if (appState == AppState::STATE_LIGHTS) {
+      // IMPORTANT: do nothing here — Lights handles press internally.
+      // (No goMenu(); keep the app active.)
+
+    } else if (appState == AppState::STATE_LAUNCHER) {
+      // Same idea: let Launcher handle its own presses / wantsExit().
+      // (No goMenu();)
+
+    } else {
+      // For any truly unknown state, you can still fall back to menu:
+      // goMenu();
     }
-
-  } else if (appState == AppState::STATE_TORCH) {
-    Haptics::back();
-    goMenu();
-
-  } else if (appState == AppState::STATE_PONG) {
-    Pong::onPress(goMenu);
-
-  } else if (appState == AppState::STATE_SNAKE) {
-    Snake::onPress(goMenu);
-
-  } else if (appState == AppState::STATE_MAZE) {
-    Maze::onPress(goMenu);
-
-  } else if (appState == AppState::STATE_HISCORES) {
-    Highscores::onPress(goMenu);
-  
-  } else if (appState == AppState::STATE_ABOUT) {
-    // deliver press to About page (will call goMenu() or set its exit flag)
-    About::onPress(goMenu);
-
-  } else if (appState == AppState::STATE_LIGHTS) {
-    // IMPORTANT: do nothing here — Lights handles press internally.
-    // (No goMenu(); keep the app active.)
-
-  } else if (appState == AppState::STATE_LAUNCHER) {
-    // Same idea: let Launcher handle its own presses / wantsExit().
-    // (No goMenu();)
-
-  } else {
-    // For any truly unknown state, you can still fall back to menu:
-    // goMenu();
   }
-}
 
   // ---- Frame pacing (~30 FPS) ----
   const uint32_t nowUs = micros();
@@ -177,9 +188,15 @@ if (knob.isPressed()) {
         goMenu();
       }
       break;
+
     case AppState::STATE_LIGHTS:
       Lights::tickAndDraw(sprite, knob);
       if (Lights::wantsExit()) { Haptics::back(); goMenu(); }
+      break;
+
+    case AppState::STATE_MEASURE:                // <-- NEW
+      Measure::tickAndDraw(sprite, knob);
+      sprite.pushSprite(0,0);
       break;
   }
 }
