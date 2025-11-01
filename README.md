@@ -1,4 +1,4 @@
-# SmartDial — Demo
+# SmartDial
 
 A small modular app launcher for Seeed XIAO ESP32S3 that runs games, utilities and a BLE launcher. Main entry point: [src/main.cpp](src/main.cpp).
 
