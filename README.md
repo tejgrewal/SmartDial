@@ -1,12 +1,16 @@
 # SmartDial
 
-A small modular app launcher for Seeed XIAO ESP32S3 that runs games, utilities and a BLE launcher. Main entry point: [src/main.cpp](src/main.cpp).
+This project is proff of concept, that used a Round Display, Dial, Haptics with power of ESP32-S3 as main controller.
 
 Features
 - Menu-driven launcher with games (Pong, Snake, Maze), Torch app and BLE-based Launcher.
 - Uses Seeed_GFX / TFT_eSPI for display rendering.
 - Haptics and BNO sensor support.
 - Modular app interface via the Modulino knob.
+
+CAD - All the model files are in CAD folder
+BOM - Contains bill of material of the items required to make one SmartDial
+Assembly & Fabrication - Contain notes on important items. Please read carefully before commiting or start of project. 
 
 Quick links to main code & modules
 - [`src/main.cpp`](src/main.cpp)
