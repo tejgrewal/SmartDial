@@ -1,0 +1,5 @@
+Fabrication Notes
+1. All the CAD parts are 3d printable.
+2. Top Cover and Bottom Cover - Printed using PETG Transparent (check https://www.instagram.com/reel/DPusf-8j6Yj/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA== )
+3. Case or the main holding part - Printed using PLA Black ( The part was split from center for better best accuracy and joined using T7000 Glue - check  https://www.instagram.com/reel/DPpqfsNkRqw/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)
+4. Dial - Printed using PLA RED and BLUE
