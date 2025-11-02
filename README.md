@@ -8,9 +8,12 @@ Features
 - Haptics and BNO sensor support.
 - Modular app interface via the Modulino knob.
 
-CAD - All the model files are in CAD folder
-BOM - Contains bill of material of the items required to make one SmartDial
-Assembly & Fabrication - Contain notes on important items. Please read carefully before commiting or start of project. 
+CAD Folder- All the model files are in CAD folder
+
+BOM Folder - Bill of material of the items required to make one SmartDial
+
+Assembly & Fabrication Folder - Contain notes on important items. Please read carefully before commiting or start of project. 
+
 
 Quick links to main code & modules
 - [`src/main.cpp`](src/main.cpp)
