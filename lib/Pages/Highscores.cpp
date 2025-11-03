@@ -6,13 +6,17 @@
 #include "Icons.h"
 #include "Blit.h"
 #include "Theme.h"
+#include <Preferences.h>
 
 static int lastKnob = 0;
 static int sel = 0; // index into ITEMS
 static const int ICON_SIZE = 40;
 static uint32_t s_popStartMs = 0;
 
-enum ItemType { IT_BACK=0, IT_PONG, IT_SNAKE, IT_RESET, IT_COUNT };
+// Cache AIM high once (avoid hitting NVS every frame)
+static int s_bestAim = 0;
+
+enum ItemType { IT_BACK=0, IT_PONG, IT_SNAKE, IT_AIM, IT_RESET, IT_COUNT };
 
 struct Item {
   const char* name;
@@ -24,10 +28,11 @@ struct Item {
 
 // NOTE: Pong uses infinityIcon in this project
 static const Item ITEMS[IT_COUNT] = {
-  { "Back",         backIcon,     backIcon_W,     backIcon_H,     backIcon_COLORKEY,    IT_BACK  },
-  { "Pong",         infinityIcon, infinityIcon_W, infinityIcon_H, infinityIcon_COLORKEY,IT_PONG  },
-  { "Snake",        snakeIcon,    snakeIcon_W,    snakeIcon_H,    snakeIcon_COLORKEY,   IT_SNAKE },
-  { "Reset Scores", nullptr,      0,              0,              0,                    IT_RESET }
+  { "Back",         backIcon,     backIcon_W,     backIcon_H,     backIcon_COLORKEY,     IT_BACK  },
+  { "Pong",         infinityIcon, infinityIcon_W, infinityIcon_H, infinityIcon_COLORKEY, IT_PONG  },
+  { "Snake",        snakeIcon,    snakeIcon_W,    snakeIcon_H,    snakeIcon_COLORKEY,    IT_SNAKE },
+  { "AIM",          aimIcon,      aimIcon_W,      aimIcon_H,      aimIcon_COLORKEY,      IT_AIM   }, // <-- NEW
+  { "Reset Scores", nullptr,      0,              0,              0,                     IT_RESET }
 };
 
 static inline void startPop(){ s_popStartMs = millis(); }
@@ -37,9 +42,27 @@ static inline float popT(){
   return t;
 }
 
+// Load AIM high score from Preferences (same namespace/key used by AIM.cpp)
+static void loadAimBest(){
+  Preferences p;
+  p.begin("qubeGames", true);
+  s_bestAim = p.getInt("aimHigh", 0);
+  p.end();
+}
+
+// Zero AIM high score in Preferences
+static void resetAimBest(){
+  Preferences p;
+  p.begin("qubeGames", false);
+  p.putInt("aimHigh", 0);
+  p.end();
+  s_bestAim = 0;
+}
+
 void Highscores::init(TFT_eSprite &, ModulinoKnob &knob){
   lastKnob = knob.get();
   sel = 0;
+  loadAimBest();  // <-- get AIM best once at entry
   startPop();
 }
 
@@ -51,7 +74,10 @@ void Highscores::onPress(void (*goMenu)()){
     return;
   }
   if(it.type == IT_RESET){
+    // Reset Pong/Snake via Storage
     Storage::resetHighscores();
+    // Reset AIM high locally (AIM stores in Preferences)
+    resetAimBest();
     Haptics::tap();
     return;
   }
@@ -63,6 +89,7 @@ static int getScoreForItem(const Item &it){
   switch(it.type){
     case IT_PONG:  return Storage::bestPong;
     case IT_SNAKE: return Storage::bestSnake;
+    case IT_AIM:   return s_bestAim; // <-- NEW
     default:       return 0;
   }
 }
@@ -89,7 +116,7 @@ void Highscores::tickAndDraw(TFT_eSprite &spr, ModulinoKnob &knob){
   // draw centered card for current selection
   const Item &it = ITEMS[sel];
 
-  // draw icon centered
+  // draw icon centered (if any)
   if(it.icon){
     drawIconTransparent(spr,
                         iconCX - it.w/2,
@@ -108,32 +135,21 @@ void Highscores::tickAndDraw(TFT_eSprite &spr, ModulinoKnob &knob){
     spr.setTextSize(0);
   }
 
-  // bottom area: show score or hint
-  if(it.type == IT_PONG || it.type == IT_SNAKE){
+  // bottom area: show score
+  if(it.type == IT_PONG || it.type == IT_SNAKE || it.type == IT_AIM){
     int score = getScoreForItem(it);
     char buf[32];
-    snprintf(buf, sizeof(buf), "%d", score); // Changed to just show the score
+    snprintf(buf, sizeof(buf), "%d", score); // just the number, per your style
     spr.setTextDatum(BC_DATUM);
     spr.setTextColor(TFT_WHITE, Theme::BG);
     spr.drawString(buf, CX, SCREEN_HEIGHT - 18);
   } else if(it.type == IT_BACK){
     spr.setTextDatum(BC_DATUM);
     spr.setTextColor(TFT_WHITE, Theme::BG);
-    //spr.drawString("Press to return to menu", CX, SCREEN_HEIGHT - 18);
   } else if(it.type == IT_RESET){
     spr.setTextDatum(BC_DATUM);
     spr.setTextColor(TFT_RED, Theme::BG);
-    //spr.drawString("Press to reset all high scores", CX, SCREEN_HEIGHT - 18);
   }
-
-  // small page indicator dots
-  //const int dots = IT_COUNT;
-  //const int dotY = SCREEN_HEIGHT - 34;
- // const int dotX0 = CX - (dots*8)/2;
- // for(int i=0;i<dots;i++){
- //   uint16_t c = (i==sel)?TFT_WHITE:TFT_LIGHTGREY;
- //   spr.fillCircle(dotX0 + i*8, dotY, (i==sel)?3:2, c);
- // }
 
   spr.pushSprite(0,0);
 }

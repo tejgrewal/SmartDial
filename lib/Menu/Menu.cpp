@@ -1,21 +1,22 @@
 #include "Menu.h"
 #include "Theme.h"
-#include "Icons.h"        // ensure this includes measureIcon.h
+#include "Icons.h"       
 #include "Blit.h"
 #include "Haptics.h"
 
 struct Item{ const char* label; MenuId id; };
 static Item ITEMS[] = {
-  {"Home",         MenuId::M_HOME},
-  {"Launcher",     MenuId::M_LAUNCHER},
-  {"Lights",       MenuId::M_BULB},
-  {"Torch",        MenuId::M_TORCH},
-  {"Measure",      MenuId::M_MEASURE},   // <-- NEW
-  {"Infinity Pong",MenuId::M_PONG},
-  {"Snake",        MenuId::M_SNAKE},
-  {"Maze",         MenuId::M_MAZE},
-  {"High Scores",  MenuId::M_HISCORES},
-  {"About",        MenuId::M_ABOUT}
+  {"Home",          MenuId::M_HOME},
+  {"Launcher",      MenuId::M_LAUNCHER},
+  {"Lights",        MenuId::M_BULB},
+  {"Torch",         MenuId::M_TORCH},
+  {"Measure",       MenuId::M_MEASURE},
+  {"Infinity Pong", MenuId::M_PONG},
+  {"Snake",         MenuId::M_SNAKE},
+  {"Maze",          MenuId::M_MAZE},
+  {"AIM",           MenuId::M_AIM},        
+  {"High Scores",   MenuId::M_HISCORES},
+  {"About",         MenuId::M_ABOUT}
 };
 static const int COUNT = sizeof(ITEMS)/sizeof(ITEMS[0]);
 static int menuIndex=0; static int lastKnob=0; static uint32_t popStart=0;
@@ -56,7 +57,7 @@ void Menu::tickAndDraw(TFT_eSprite &spr, ModulinoKnob &knob){
       drawIconTransparent(spr, iconCX-60, iconCY-60, keyboardShortcutIcon, keyboardShortcutIcon_W, keyboardShortcutIcon_H, keyboardShortcutIcon_COLORKEY); break;
     case MenuId::M_TORCH:
       drawIconTransparent(spr, iconCX-60, iconCY-60, torchIcon, torchIcon_W, torchIcon_H, torchIcon_COLORKEY); break;
-    case MenuId::M_MEASURE: // <-- NEW
+    case MenuId::M_MEASURE:
       drawIconTransparent(spr, iconCX-60, iconCY-60, measureIcon, measureIcon_W, measureIcon_H, measureIcon_COLORKEY); break;
     case MenuId::M_PONG:
       drawIconTransparent(spr, iconCX-60, iconCY-60, infinityIcon, infinityIcon_W, infinityIcon_H, infinityIcon_COLORKEY); break;
@@ -64,6 +65,8 @@ void Menu::tickAndDraw(TFT_eSprite &spr, ModulinoKnob &knob){
       drawIconTransparent(spr, iconCX-60, iconCY-60, snakeIcon, snakeIcon_W, snakeIcon_H, snakeIcon_COLORKEY); break;
     case MenuId::M_MAZE:
       drawIconOpaque     (spr, iconCX-60, iconCY-60, mazeIcon,  mazeIcon_W,  mazeIcon_H); break;
+    case MenuId::M_AIM:  // <--- NEW
+      drawIconTransparent(spr, iconCX-60, iconCY-60, aimIcon,   aimIcon_W,   aimIcon_H,   aimIcon_COLORKEY); break;
     case MenuId::M_HISCORES:
       drawIconTransparent(spr, iconCX-60, iconCY-60, highScoreIcon, highScoreIcon_W, highScoreIcon_H, highScoreIcon_COLORKEY); break;
     case MenuId::M_ABOUT:

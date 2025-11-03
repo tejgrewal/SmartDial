@@ -21,7 +21,7 @@
 #include "BLEHost.h"
 #include "Lights.h"       // BLE UART-like server (NimBLE)
 #include "measure.h"      // <-- NEW: center-out measurement tool
-// If your file is named "Measure.h" instead, include that name.
+#include "Aim.h"          // <-- AIM
 
 TFT_eSPI tft;
 TFT_eSprite sprite(&tft);
@@ -32,15 +32,16 @@ static uint32_t lastUs = 0;
 
 // ---- App glue helpers ----
 static void goMenu()        { appState = AppState::STATE_MENU; Menu::startPop(); }
-static void startPong()     { appState = AppState::STATE_PONG; Pong::reset(); }
-static void startSnake()    { appState = AppState::STATE_SNAKE; Snake::reset(); }
-static void startMaze()     { appState = AppState::STATE_MAZE; Maze::reset(); }
-static void startTorch()    { appState = AppState::STATE_TORCH; Torch::init(); }
+static void startPong()     { appState = AppState::STATE_PONG;     Pong::reset(); }
+static void startSnake()    { appState = AppState::STATE_SNAKE;    Snake::reset(); }
+static void startMaze()     { appState = AppState::STATE_MAZE;     Maze::reset(); }
+static void startTorch()    { appState = AppState::STATE_TORCH;    Torch::init(); }
 static void showHighscores(){ appState = AppState::STATE_HISCORES; Storage::loadHighscores(); }
 static void showAbout()     { appState = AppState::STATE_ABOUT; }
 static void startLauncher() { appState = AppState::STATE_LAUNCHER; Launcher::init(sprite, knob); }
-static void startLights()   { appState = AppState::STATE_LIGHTS; Lights::init(sprite, knob); }
-static void startMeasure()  { appState = AppState::STATE_MEASURE; Measure::enter(knob); } // <-- NEW
+static void startLights()   { appState = AppState::STATE_LIGHTS;   Lights::init(sprite, knob); }
+static void startMeasure()  { appState = AppState::STATE_MEASURE;  Measure::enter(knob); } // <-- NEW
+static void startAim()      { appState = AppState::STATE_AIM; }                          // <-- AIM
 
 void setup() {
   Serial.begin(115200);
@@ -72,6 +73,7 @@ void setup() {
   Highscores::init(sprite, knob);
   About::init(sprite, knob);
   Measure::init(sprite, knob);            // <-- NEW (once at boot)
+  Aim::init(sprite, knob);                // <-- AIM (once at boot)
   // Optionally calibrate your screen width in mm:
   // Measure::setScreenWidthMM(32.4f);
 
@@ -98,6 +100,7 @@ void loop() {
         case MenuId::M_PONG:      startPong();     break;
         case MenuId::M_SNAKE:     startSnake();    break;
         case MenuId::M_MAZE:      startMaze();     break;
+        case MenuId::M_AIM:       startAim();      break;   // <-- AIM
         case MenuId::M_HISCORES:  showHighscores();break;
         case MenuId::M_ABOUT:     showAbout();     break;
       }
@@ -118,6 +121,9 @@ void loop() {
 
     } else if (appState == AppState::STATE_MAZE) {
       Maze::onPress(goMenu);
+
+    } else if (appState == AppState::STATE_AIM) {       // <-- AIM
+      Aim::onPress(goMenu);
 
     } else if (appState == AppState::STATE_HISCORES) {
       Highscores::onPress(goMenu);
@@ -197,6 +203,11 @@ void loop() {
     case AppState::STATE_MEASURE:                // <-- NEW
       Measure::tickAndDraw(sprite, knob);
       sprite.pushSprite(0,0);
+      break;
+
+    case AppState::STATE_AIM:                    // <-- AIM
+      Aim::tick(dt);
+      Aim::draw(sprite);
       break;
   }
 }
